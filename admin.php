@@ -311,7 +311,12 @@ if (isset($_REQUEST['public_edit'])) {
 
 if (isset($_REQUEST['clearlog'])) {
 	$public_id = $_REQUEST['clearlog'];
-	if (!($delete_log = $mysqli->prepare("DELETE FROM updatelog WHERE source_id=?"))) {
+	if ($_REQUEST['clearlog'] == 0) {
+		$whereclear = 'WHERE source_id>?';
+	} else {
+		$whereclear = 'WHERE source_id=?';
+	}
+	if (!($delete_log = $mysqli->prepare("DELETE FROM updatelog " . $whereclear))) {
 		die('<div class="alert alert-danger" role="alert">Не удалось подготовить запрос: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>');
 	}
 	if (!$delete_log->bind_param("i", $public_id)) {
