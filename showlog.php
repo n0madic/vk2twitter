@@ -60,10 +60,15 @@ if (!$mysqli->set_charset("utf8")) {
     echo '<div class="alert alert-danger" role="alert">Ошибка при загрузке набора символов UTF8: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>';
 }
 
-if (!isset($_REQUEST['notnull'])) {
-	$select = 'SELECT * FROM updatelog WHERE source_id=? ORDER BY datetime DESC';
+if (isset($_REQUEST['notnull'])) {
+	$notnull = "AND counter>0";
 } else {
-	$select = 'SELECT * FROM updatelog WHERE source_id=? AND counter>0 ORDER BY datetime DESC';
+	$notnull = "";
+}
+if ($source_id == 0) {
+	$select = 'SELECT * FROM updatelog WHERE source_id>? ' . $notnull . ' ORDER BY datetime DESC';
+} else {
+	$select = 'SELECT * FROM updatelog WHERE source_id=? ' . $notnull . ' ORDER BY datetime DESC';
 }
 
 if (!($sel_log = $mysqli->prepare($select))) {
@@ -82,7 +87,15 @@ $result = $sel_log->get_result();
 while ($srow = $result->fetch_assoc()) {
 	$uid = uniqid() . mt_rand();
 	echo '<div class="panel panel-default">	<div class="panel-heading">';
-	echo '<strong>'.$srow['datetime'].'</strong><span class="badge pull-right">' . $srow['counter'] . '</span>';
+	echo '<strong>'.$srow['datetime'].'</strong>';
+	if ($source_id == 0) {
+		if ($source_info = $mysqli->query("SELECT * FROM source WHERE id=" . $srow['source_id'])) {
+			$sinfo = $source_info->fetch_assoc();
+			echo ' '.$sinfo['name'].' ('.$sinfo['description'].')';
+			$source_info->close();
+		}
+	}	
+	echo '<span class="badge pull-right">' . $srow['counter'] . '</span>';
 	echo '</div> <div class="panel-body">';
 	if ($srow['counter'] > 0) {
 		echo '<button type="button" class="btn btn-info btn-xs" data-toggle="collapse" data-target="#' . $uid . '">Подробности обновления</button>';

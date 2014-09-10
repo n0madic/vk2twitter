@@ -18,7 +18,6 @@ if (!isset($_REQUEST['oauth_verifier'])) {
 		'consumer_key' => CONSUMER_KEY,
 		'consumer_secret' => CONSUMER_SECRET,
 	));
-
 	
 	$callback_url = "http".(!empty($_SERVER['HTTPS'])?"s":"")."://".$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'];
 	
@@ -79,10 +78,10 @@ if (!isset($_REQUEST['oauth_verifier'])) {
 			die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
 		}
 		if (!($upd_token = $mysqli->prepare("UPDATE destination SET oauth_token = ? , oauth_token_secret = ? WHERE id = ?"))) {
-			die("Не удалось подготовить запрос: (" . $mysqli->errno . ") " . $mysqli->error);
+			die("Prepare an SQL statement error: (" . $mysqli->errno . ") " . $mysqli->error);
 		}
 		if (!$upd_token->bind_param("ssi", $oauth_token, $oauth_token_secret, $id)) {
-			die("Не удалось привязать параметры: (" . $upd_token->errno . ") " . $upd_token->error);
+			die("Error binding parameters: (" . $upd_token->errno . ") " . $upd_token->error);
 		}
 		if (!$upd_token->execute()) {
 			echo("Token update error: (" . $upd_token->errno . ") " . $upd_token->error);

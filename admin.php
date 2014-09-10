@@ -42,6 +42,7 @@ function triggerEditModal(name, description, id) {
     </div>
       <ul class="nav navbar-nav navbar-right">
 		<a href="update_post.php"><button type="button" class="btn btn-default navbar-btn">Обновить все посты</button></a>
+		<a class="btn btn-success" href="showlog.php?id=0&notnull">Общий журнал обновлений</a>
       </ul>
 
   </div><!-- /.container-fluid -->
