@@ -152,10 +152,9 @@ while ($row = $source_list->fetch_assoc()) {
 				$short_url = json_decode(file_get_contents("http://api.bit.ly/v3/shorten?login=n0madic&apiKey=R_52700e1da2be483d9859f1a9670f4261&longUrl=".urlencode("https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id)."&format=json"))->data->url;
 				$totalchars = 90;
 				if (mb_strlen($status) > $totalchars) {
-					$status = mb_substr($status, 0, $totalchars)."..."; //…
+					$status = mb_substr($status, 0, $totalchars); //…
 				};
-				$status = $status . " " . $short_url;
-			
+				$status = $status . "... " . $short_url;
 			}
 			$logtext = $logtext . "<tr><td>Lenght: ".mb_strlen($status)."<br>  <i>".$status."</i><br />";
 			// Post to Twitter if not localhost
