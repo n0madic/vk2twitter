@@ -223,7 +223,7 @@ if (isset($_REQUEST['delete'])) {
 	if (!$delete_destination->bind_param("i", $dest_id)) {
 		die('<div class="alert alert-danger" role="alert">Не удалось привязать параметры: (' . $delete_destination->errno . ') ' . $delete_destination->error.'</div>');
 	}
-	if (!($delete_dsource = $mysqli->prepare("DELETE FROM source WHERE destination_id=?"))) {
+	if (!($delete_dsource = $mysqli->prepare("DELETE source, updatelog FROM source LEFT JOIN updatelog ON updatelog.source_id = source.id WHERE source.destination_id=?"))) {
 		die('<div class="alert alert-danger" role="alert">Не удалось подготовить запрос: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>');
 	}
 	if (!$delete_dsource->bind_param("i", $dest_id)) {
@@ -269,7 +269,7 @@ if (isset($_REQUEST['public_insert'])) {
 
 if (isset($_REQUEST['public_delete'])) {
 	$public_id = $_REQUEST['public_delete'];
-	if (!($delete_source = $mysqli->prepare("DELETE FROM source WHERE id=?"))) {
+	if (!($delete_source = $mysqli->prepare("DELETE source, updatelog FROM source LEFT JOIN updatelog ON updatelog.source_id = source.id WHERE source.id = ?"))) {
 		die('<div class="alert alert-danger" role="alert">Не удалось подготовить запрос: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>');
 	}
 	if (!$delete_source->bind_param("i", $public_id)) {
