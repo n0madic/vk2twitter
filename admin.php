@@ -375,7 +375,7 @@ while ($row = $destination_list->fetch_assoc()) {
 		$index = 0;
 		while ($srow = $result->fetch_assoc()) {
 			$index++;
-			echo '<tr><td>'.$index.'</td><td>'.$srow['name'].'</td><td>'.$srow['description'].'</td>';
+			echo '<tr><td>'.$index.'</td><td><a href=https://vk.com/'.$srow['name'].' target="_blank">'.$srow['name'].'</a></td><td>'.$srow['description'].'</td>';
 ?>
 			<td>
 			<a class="btn btn-success btn-xs" href="showlog.php?id=<? echo $srow['id'];?>&notnull">Журнал обновлений</a>
