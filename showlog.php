@@ -103,7 +103,13 @@ while ($srow = $result->fetch_assoc()) {
 	echo '</td><td width="20"><center><span class="badge">' . $srow['counter'] . '</span></center></td>';
     echo '<td>';
 	if ($srow['counter'] > 0) {
-		echo '<button type="button" class="btn btn-info btn-xs" data-toggle="collapse" data-target="#' . $uid . '">Подробности обновления</button>';
+		echo '<button type="button" class="btn ';
+		if (strpos($srow['text'], 'alert-danger') !== false) {
+			echo 'btn-warning';
+		} else {
+			echo 'btn-info';
+		}
+		echo' btn-xs" data-toggle="collapse" data-target="#' . $uid . '">Подробности обновления</button>';
 		echo '<div id="' . $uid . '" class="collapse">';
 	    echo '<table class="table table-striped table-condensed">';
 		echo $srow['text'];
