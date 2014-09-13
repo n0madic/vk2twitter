@@ -148,16 +148,32 @@ while ($row = $source_list->fetch_assoc()) {
 			$status = preg_replace("/\[(club|id)\d+\|/", "",$status, 1); // Удаляем метатеги
 			$status = preg_replace("/\]/", " ", $status, 1);			 // и замыкающие их скобки
 			$status = preg_replace('/\s+/', ' ',$status); // удаляем повторяющиеся пробелы
-			if (count($wall[$i]->attachments) > 1 || mb_strlen($status) > 140 || $attach_type == 'video' || $attach_type == 'poll') {
+			// Определение более точной длины будущего твита
+			$tcoLengthHttp = 22;
+			$tcoLengthHttps = 23;
+			$twitterPicLength = 23;
+			preg_match_all('/((http|https|ftp):\/\/(\S*?\.\S*?))(\s|\;|\)|\]|\[|\{|\}|,|\"|\'|:|\<|$|\.\s)/i', $status, $matches);
+			$m = &$matches[1];
+			$tweetLength = mb_strlen($status);
+			for ($j = 0; $i < count($m); $j++) {
+				$tweetLength -= mb_strlen($m[$j]);
+				$tweetLength += mb_stristr($m[$j], 'https') === 0
+					? $tcoLengthHttps
+					: $tcoLengthHttp;
+			}
+			if (isset($image)) $tweetLength += $twitterPicLength;
+			$diffLength = abs($tweetLength - mb_strlen($status));
+			// Если твит получается слишком длинным или есть продолжение то усекаем его
+			if (count($wall[$i]->attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
 				$short_url = json_decode(file_get_contents("http://api.bit.ly/v3/shorten?login=n0madic&apiKey=R_52700e1da2be483d9859f1a9670f4261&longUrl=".urlencode("https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id)."&format=json"))->data->url;
-				$totalchars = 90;
+				$totalchars = 140 - 22 - 4 - $diffLength; // Отнимаем от максимальной длины твита сокращенные urls, "... " и т.п.
 				if (mb_strlen($status) > $totalchars) {
 					$status = mb_substr($status, 0, $totalchars); //…
 				};
 				$status = $status . "... " . $short_url;
 			}
 			$logtext = $logtext . "<tr><td>Lenght: ".mb_strlen($status)."<br>  <i>".$status."</i><br />";
-			// Post to Twitter if not localhost
+			// Постим в Твиттер если не localhost
 			If (isset($image)) {
 				$logtext = $logtext . "<img src=".$image."><br />";
 				if ($_SERVER['HTTP_HOST'] <> 'localhost') {
@@ -186,13 +202,6 @@ while ($row = $source_list->fetch_assoc()) {
 			if ($response <> 200) {
 				$error = json_decode($tmhOAuth->response['response']);
 				$logtext = $logtext . '<div class="alert alert-danger" role="alert">Ошибка размещения статуса в Twitter: ' . $error->errors[0]->message . '</div>';
-				/* 
-				$uid = uniqid();
-				echo '<button type="button" class="btn btn-danger btn-xs" data-toggle="collapse" data-target="#' . $uid . '">dump error</button>';
-				echo '<div id="' . $uid . '" class="collapse">';
-				var_dump($tmhOAuth);
-				echo '</div>'; 
-				*/
 			}; 
 			$logtext = $logtext . '</td></tr>';
 		}
