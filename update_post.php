@@ -162,15 +162,15 @@ while ($row = $source_list->fetch_assoc()) {
 					: $tcoLengthHttp;
 			}
 			if (isset($image)) $tweetLength += $twitterPicLength;
-			$diffLength = abs($tweetLength - mb_strlen($status));
+			$diffLength = $tweetLength - mb_strlen($status);
+			if ($diffLength < 0) $diffLength = 0;
 			// Если твит получается слишком длинным или есть продолжение то усекаем его
 			if (count($wall[$i]->attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
-				$short_url = json_decode(file_get_contents("http://api.bit.ly/v3/shorten?login=n0madic&apiKey=R_52700e1da2be483d9859f1a9670f4261&longUrl=".urlencode("https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id)."&format=json"))->data->url;
-				$totalchars = 140 - 22 - 4 - $diffLength; // Отнимаем от максимальной длины твита сокращенные urls, "... " и т.п.
+				$totalchars = 140 - 23 - 4 - $diffLength; // Отнимаем от максимальной длины твита сокращенные urls, "... " и т.п.
 				if (mb_strlen($status) > $totalchars) {
 					$status = mb_substr($status, 0, $totalchars); //…
 				};
-				$status = $status . "... " . $short_url;
+				$status = $status . "... https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id;
 			}
 			$logtext = $logtext . "<tr><td>Lenght: ".mb_strlen($status)."<br>  <i>".$status."</i><br />";
 			// Постим в Твиттер если не localhost
