@@ -152,7 +152,8 @@ while ($row = $source_list->fetch_assoc()) {
 			$tcoLengthHttp = 22;
 			$tcoLengthHttps = 23;
 			$twitterPicLength = 23;
-			preg_match_all('/(((http|https|ftp):\/\/)?(\S*?\.\S*?))(\s|\;|\)|\]|\[|\{|\}|,|\"|\'|:|\<|$|\.\s)/i', $status, $matches);
+			$url_regex = '/((https?:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?/i';
+			preg_match_all($url_regex, $status, $matches);
 			$m = &$matches[0];
 			$tweetLength = mb_strlen($status);
 			for ($j = 0; $j < count($m); $j++) {
