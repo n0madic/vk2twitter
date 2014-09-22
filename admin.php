@@ -80,7 +80,7 @@ if(!isset($_SESSION['u_login'])){
 
 <!-- Add Twitter account -->
 <div class="modal fade" id="AddTwitterModal" tabindex="-1" role="dialog" aria-labelledby="AddTwitterLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg"">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
 	  <form class="form-horizontal" role="form" action="admin.php" method="POST">
       <div class="modal-header">
