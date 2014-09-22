@@ -143,7 +143,7 @@ while ($row = $source_list->fetch_assoc()) {
 			if ($wall[$i]->post_type == 'copy') {
 				$status = $wall[$i]->copy_text.' '.$wall[$i]->text;
 			};
-			$status=Normalizer::normalize($status,Normalizer::FORM_C);
+			//$status=Normalizer::normalize($status,Normalizer::FORM_C);
 			$status = strip_tags(str_ireplace("<br>", "\n", $status));
 			$status = preg_replace("/\[(club|id)\d+\|/", "",$status, 1); // Удаляем метатеги
 			$status = preg_replace("/\]/", " ", $status, 1);			 // и замыкающие их скобки
