@@ -347,6 +347,7 @@ while ($row = $destination_list->fetch_assoc()) {
 ?>
 	<div class="panel panel-default">
 		<div class="panel-heading">
+			<img src="http://g.twimg.com/Twitter_logo_blue.png" alt="Twitter" height="20" width="25">
 			<font size="5"><a href="http://twitter.com/<? echo $row['name'];?>" target="_blank"><? echo $row['display_name'];?></a></font>
 			<?if (empty($row['oauth_token']) || empty($row['oauth_token_secret']))  {
 				echo '<a class="btn btn-warning btn-sm" href=get_access_token.php?id='.$dest_id.'>Требуется OAuth авторизация в Твиттере</a>';
@@ -378,7 +379,7 @@ while ($row = $destination_list->fetch_assoc()) {
 			echo '<tr><td>'.$index.'</td><td><a href=https://vk.com/'.$srow['name'].' target="_blank">'.$srow['name'].'</a></td><td>'.$srow['description'].'</td>';
 ?>
 			<td>
-			<a class="btn btn-success btn-xs" href="showlog.php?id=<? echo $srow['id'];?>&notnull">Журнал обновлений</a>
+			<a class="btn btn-success btn-xs" href="showlog.php?id=<? echo $srow['id'];?>&notnull">Журнал</a>
 			<button class="btn btn-info btn-xs" data-toggle="modal" onClick="triggerEditModal('<? echo $srow['name'];?>','<? echo $srow['description'];?>','<? echo $srow['id'];?>')">Изменить</button>
 			<a class="btn btn-danger btn-xs" href="?public_delete=<? echo $srow['id'];?>">Удалить</a>
 			</td>
