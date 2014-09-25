@@ -41,8 +41,8 @@ function triggerEditModal(name, description, id) {
       <a class="navbar-brand" href="admin.php">VK2Twitter панель администрирования</a>
     </div>
       <ul class="nav navbar-nav navbar-right">
-		<a href="update_post.php"><button type="button" class="btn btn-default navbar-btn">Обновить все посты</button></a>
-		<a class="btn btn-success" href="showlog.php?id=0&notnull">Общий журнал обновлений</a>
+		<a href="update_post.php"><button type="button" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-refresh"></span> Обновить все посты</button></a>
+		<a class="btn btn-success" href="showlog.php?id=0&notnull"><span class="glyphicon glyphicon-list"></span> Общий журнал обновлений</a>
       </ul>
 
   </div><!-- /.container-fluid -->
@@ -350,9 +350,9 @@ while ($row = $destination_list->fetch_assoc()) {
 			<img src="http://g.twimg.com/Twitter_logo_blue.png" alt="Twitter" height="20" width="25">
 			<font size="5"><a href="http://twitter.com/<? echo $row['name'];?>" target="_blank"><? echo $row['display_name'];?></a></font>
 			<?if (empty($row['oauth_token']) || empty($row['oauth_token_secret']))  {
-				echo '<a class="btn btn-warning btn-sm" href=get_access_token.php?id='.$dest_id.'>Требуется OAuth авторизация в Твиттере</a>';
+				echo '<a class="btn btn-warning btn-sm" href=get_access_token.php?id='.$dest_id.'><span class="glyphicon glyphicon-log-in"></span> Требуется OAuth авторизация в Твиттере</a>';
 			}?>
-			<a class="btn btn-danger btn-sm pull-right" href="?delete=<? echo $dest_id ?>">Удалить аккаунт</a>
+			<a class="btn btn-danger btn-sm pull-right" href="?delete=<? echo $dest_id ?>"><span class="glyphicon glyphicon-remove"></span> Удалить аккаунт</a>
 		</div>
 		<div class="panel-body">
 <?
@@ -379,9 +379,9 @@ while ($row = $destination_list->fetch_assoc()) {
 			echo '<tr><td>'.$index.'</td><td><a href=https://vk.com/'.$srow['name'].' target="_blank">'.$srow['name'].'</a></td><td>'.$srow['description'].'</td>';
 ?>
 			<td>
-			<a class="btn btn-success btn-xs" href="showlog.php?id=<? echo $srow['id'];?>&notnull">Журнал</a>
-			<button class="btn btn-info btn-xs" data-toggle="modal" onClick="triggerEditModal('<? echo $srow['name'];?>','<? echo $srow['description'];?>','<? echo $srow['id'];?>')">Изменить</button>
-			<a class="btn btn-danger btn-xs" href="?public_delete=<? echo $srow['id'];?>">Удалить</a>
+			<a class="btn btn-success btn-xs" href="showlog.php?id=<? echo $srow['id'];?>&notnull"><span class="glyphicon glyphicon-list"></span> Журнал</a>
+			<button class="btn btn-info btn-xs" data-toggle="modal" onClick="triggerEditModal('<? echo $srow['name'];?>','<? echo $srow['description'];?>','<? echo $srow['id'];?>')"><span class="glyphicon glyphicon-edit"></span> Изменить</button>
+			<a class="btn btn-danger btn-xs" href="?public_delete=<? echo $srow['id'];?>"><span class="glyphicon glyphicon-remove"></span> Удалить</a>
 			</td>
 		</tr>
 <?			
@@ -390,7 +390,7 @@ while ($row = $destination_list->fetch_assoc()) {
 ?>
 		</tbody>
 		</table>
-		<button class="btn btn-primary btn-sm" data-toggle="modal" onClick="triggerAddModal('<? echo $dest_id ?>')">Добавить паблик</button>
+		<button class="btn btn-primary btn-sm" data-toggle="modal" onClick="triggerAddModal('<? echo $dest_id ?>')"><span class="glyphicon glyphicon-plus"></span> Добавить паблик</button>
 
 	  </div>
 	</div>
@@ -404,6 +404,7 @@ $mysqli->close;
 
 ?>
 <button class="btn btn-primary" data-toggle="modal" data-target="#AddTwitterModal">
+<span class="glyphicon glyphicon-plus"></span> 
 Добавить Twitter учетку
 </button>
 </div>

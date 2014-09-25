@@ -35,11 +35,11 @@ if(!isset($_REQUEST['id'])){
       <a class="navbar-brand" href="admin.php">VK2Twitter панель администрирования</a>
     </div>
       <ul class="nav navbar-nav navbar-right">
-		<a href="admin.php?clearlog=<? echo $source_id;?>"><button type="button" class="btn btn-danger navbar-btn">Очистить весь журнал</button></a>
+		<a href="admin.php?clearlog=<? echo $source_id;?>"><button type="button" class="btn btn-danger navbar-btn"><span class="glyphicon glyphicon-remove"></span> Очистить весь журнал</button></a>
 	  <? if (!isset($_REQUEST['notnull'])) { ?>
-		<a href="?id=<? echo $source_id . '&notnull';?>"><button type="button" class="btn btn-default navbar-btn">Убрать нулевые результаты</button></a>
+		<a href="?id=<? echo $source_id . '&notnull';?>"><button type="button" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-filter"></span> Убрать нулевые результаты</button></a>
 	  <? } else { ?>
-		<a href="?id=<? echo $source_id;?>"><button type="button" class="btn btn-default navbar-btn">Показать все результаты</button></a>
+		<a href="?id=<? echo $source_id;?>"><button type="button" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-filter"></span> Показать все результаты</button></a>
 	  <? } ?>
       </ul>
 

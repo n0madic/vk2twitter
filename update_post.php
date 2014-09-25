@@ -43,7 +43,7 @@ function RefreshTimeout() {
     </div>
 	<ul class="nav navbar-nav navbar-right">
 		<input type="text" class="navbar-btn" placeholder="Секунды" id="timeout">
-		<button class="btn btn-default navbar-btn" onClick="RefreshTimeout()">Интервал автообновления</button>
+		<button class="btn btn-default navbar-btn" onClick="RefreshTimeout()"><span class="glyphicon glyphicon-time"></span> <span class="glyphicon glyphicon-repeat"></span> Интервал автообновления</button>
       </ul>
 
   </div><!-- /.container-fluid -->
@@ -107,7 +107,7 @@ while ($row = $source_list->fetch_assoc()) {
 	<div class="panel-heading">
 		<font size="4">Паблик <b><a href="http://vk.com/<? echo $row['name'].'">'.$row['name'];?></a></b> (<? echo $row['description'];?>) <span class="glyphicon glyphicon-arrow-right"></span>
 			<a href="http://twitter.com/<? echo $drow['name'];?>" target="_blank"><? echo $drow['display_name'];?></a></font>
-		<a class="btn btn-success btn-xs pull-right" href="showlog.php?id=<? echo $row['id'];?>">Журнал обновлений</a>
+		<a class="btn btn-success btn-xs pull-right" href="showlog.php?id=<? echo $row['id'];?>"><span class="glyphicon glyphicon-list"></span> Журнал обновлений</a>
 	</div>
 	<div class="panel-body">
 	<table class="table table-striped table-bordered">
