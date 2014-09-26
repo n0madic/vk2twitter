@@ -2,8 +2,9 @@
 require_once('config.php');
 session_start();
 ?>
+<!DOCTYPE html>
 <html>
-<header>
+<head>
 <title>VK2Twitter Панель администрирования</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
@@ -26,7 +27,7 @@ function triggerEditModal(name, description, id) {
     $('#EditPublicModal').modal();
 }
 </script>
-</header>
+</head>
 <body>
 <nav class="navbar navbar-default" role="navigation">
   <div class="container-fluid">

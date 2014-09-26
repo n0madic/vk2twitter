@@ -1,4 +1,5 @@
-﻿<html>
+﻿<!DOCTYPE html>
+<html>
 <head>
 <title>VK2Twitter Панель администрирования</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">

@@ -12,15 +12,16 @@ if(!isset($_REQUEST['id'])){
 	$source_id = $_REQUEST['id'];
 }
 ?>
+<!DOCTYPE html>
 <html>
-<header>
+<head>
 <title>VK2Twitter Журнал обновлений паблика</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-</header>
+</head>
 <body>
 <nav class="navbar navbar-default" role="navigation">
   <div class="container-fluid">
