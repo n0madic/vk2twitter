@@ -133,17 +133,16 @@ while ($row = $source_list->fetch_assoc()) {
 				$status = $wall[$i]->copy_text.' '.$wall[$i]->text;
 			};
 			//$status=Normalizer::normalize($status,Normalizer::FORM_C);
-			$status = strip_tags(str_ireplace("<br>", "\n", $status));
-			$status = preg_replace("/\[(club|id)\d+\|/", "",$status, 1); // Удаляем метатеги
-			$status = preg_replace("/\]/", " ", $status, 1);			 // и замыкающие их скобки
-			$status = preg_replace('/\s+/', ' ',$status); // удаляем повторяющиеся пробелы
+			$status = strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $status)); // Заменяем переводы строк
+			$status = preg_replace("/\[(club|id)\d+\|(.+)]/U", "$2",$status); // Удаляем метатеги
+			$status = preg_replace('/\s+/', ' ',$status); // Удаляем повторяющиеся пробелы
 			// Определение более точной длины будущего твита
 			$tcoLengthHttp = 22;
 			$tcoLengthHttps = 23;
 			$twitterPicLength = 23;
 			$url_regex = "/(?:((?:[^-\/".'"'."':!=a-z0-9_@＠]|^|\:))(((?:https?:\/\/|www\.)?)((?:[^\p{P}\p{Lo}\s][\.-](?=[^\p{P}\p{Lo}\s])|[^\p{P}\p{Lo}\s])+\.[a-z]{2,}(?::[0-9]+)?)(\/(?:(?:\([a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\))|@[a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\/|[\.\,]?(?:[a-z0-9!\*';:=\+\$\/%#\[\]\-_~]|,(?!\s)))*[a-z0-9=#\/]?)?(\?[a-z0-9!\*'\(\);:&=\+\$\/%#\[\]\-_\.,~]*[a-z0-9_&=#\/])?))/iux";
 			// Определяем максимальную длину обычного текста
-			$totalchars = 140 - $tcoLengthHttps - 4; // Отнимаем от максимально возможной длины твита длину сокращенного url и "... "
+			$totalchars = 140 - $tcoLengthHttps - 2; // Отнимаем от максимально возможной длины твита длину сокращенного url и "… "
 			if (isset($image)) $totalchars -= $twitterPicLength; // Отнимаем длину ссылки на картинку если она есть
 			// Прикидываем реальный размер твита, попутно его обрезая до максимально возможного
 			$words = preg_split('/\s+/', $status);
@@ -168,7 +167,7 @@ while ($row = $source_list->fetch_assoc()) {
 			if (isset($image)) $tweetLength += $twitterPicLength;
 			// Если твит получается слишком длинным или есть продолжение то усекаем его
 			if (count($wall[$i]->attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
-				$status = $status_truncated . "... https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id;
+				$status = $status_truncated . "… https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id;
 			}
 			$logtext = $logtext . "<tr><td>Lenght: ".mb_strlen($status)."<br>  <i>".$status."</i><br />";
 			// Постим в Твиттер если не localhost
