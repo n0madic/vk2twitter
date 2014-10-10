@@ -178,19 +178,6 @@ if(!isset($_SESSION['u_login'])){
 <?
 require_once('tmhOAuth.php');
 
-mb_internal_encoding("UTF-8");
-
-$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
-if ($mysqli->connect_error) {
-    die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-}
-
-/* изменение набора символов на utf8 */
-if (!$mysqli->set_charset("utf8")) {
-    echo '<div class="alert alert-danger" role="alert">Ошибка при загрузке набора символов UTF8: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>';
-}
-
-
 // Добавление твиттера
 
 if (isset($_REQUEST['twitter_name'])) {

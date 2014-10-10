@@ -73,10 +73,6 @@ if (!isset($_REQUEST['oauth_verifier'])) {
 		$oauth_token = $oauth_creds['oauth_token'];
 		$oauth_token_secret = $oauth_creds['oauth_token_secret'];
 		$id = $_SESSION['id'];
-		$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
-		if ($mysqli->connect_error) {
-			die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-		}
 		if (!($upd_token = $mysqli->prepare("UPDATE destination SET oauth_token = ? , oauth_token_secret = ? WHERE id = ?"))) {
 			die("Prepare an SQL statement error: (" . $mysqli->errno . ") " . $mysqli->error);
 		}

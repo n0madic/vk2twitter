@@ -56,18 +56,6 @@ error_reporting(E_ERROR);
 require_once('config.php');
 require_once('tmhOAuth.php');
 
-mb_internal_encoding("UTF-8");
-
-$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
-if ($mysqli->connect_error) {
-    die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-}
-
-/* изменение набора символов на utf8 */
-if (!$mysqli->set_charset("utf8")) {
-    echo '<div class="alert alert-danger" role="alert">Ошибка при загрузке набора символов UTF8: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>';
-}
-
 $dest_id = 0;
 $source_list = $mysqli->query("SELECT * FROM source");
 
@@ -153,26 +141,34 @@ while ($row = $source_list->fetch_assoc()) {
 			$tcoLengthHttp = 22;
 			$tcoLengthHttps = 23;
 			$twitterPicLength = 23;
-			$url_regex = '/((https?:)?\/\/)?(([\d\w]|%[a-fA-f\d]{2,2})+(:([\d\w]|%[a-fA-f\d]{2,2})+)?@)?([\d\w][-\d\w]{0,253}[\d\w]\.)+[\w]{2,63}(:[\d]+)?(\/([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)*(\?(&?([-+_~.\d\w]|%[a-fA-f\d]{2,2})=?)*)?(#([-+_~.\d\w]|%[a-fA-f\d]{2,2})*)?/i';
-			preg_match_all($url_regex, $status, $matches);
-			$m = &$matches[0];
-			$tweetLength = mb_strlen($status);
-			for ($j = 0; $j < count($m); $j++) {
-				$tweetLength -= mb_strlen(trim($m[$j]));
-				$tweetLength += mb_stristr($m[$j], 'https') === 0
-					? $tcoLengthHttps
-					: $tcoLengthHttp;
+			$url_regex = "/(?:((?:[^-\/".'"'."':!=a-z0-9_@＠]|^|\:))(((?:https?:\/\/|www\.)?)((?:[^\p{P}\p{Lo}\s][\.-](?=[^\p{P}\p{Lo}\s])|[^\p{P}\p{Lo}\s])+\.[a-z]{2,}(?::[0-9]+)?)(\/(?:(?:\([a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\))|@[a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\/|[\.\,]?(?:[a-z0-9!\*';:=\+\$\/%#\[\]\-_~]|,(?!\s)))*[a-z0-9=#\/]?)?(\?[a-z0-9!\*'\(\);:&=\+\$\/%#\[\]\-_\.,~]*[a-z0-9_&=#\/])?))/iux";
+			// Определяем максимальную длину обычного текста
+			$totalchars = 140 - $tcoLengthHttps - 4; // Отнимаем от максимально возможной длины твита длину сокращенного url и "... "
+			if (isset($image)) $totalchars -= $twitterPicLength; // Отнимаем длину ссылки на картинку если она есть
+			// Прикидываем реальный размер твита, попутно его обрезая до максимально возможного
+			$words = preg_split('/\s+/', $status);
+			$status_truncated = '';
+			$tweetLength = 0;
+			foreach ($words as $word) {
+				// Если слово ссылка то добавляем длину короткой ссылки, иначе длину слова
+				if (preg_match($url_regex, $word)) {
+					$tweetLength += mb_stristr($word, 'https') !== FALSE ? tcoLengthHttps : tcoLengthHttp;
+				} else {
+					$tweetLength += mb_strlen($word);
+				}
+				// Заодно подготавливаем короткую версию твита
+				if ($tweetLength <= $totalchars) {
+					$status_truncated .= $word . ' ';
+				}
+				$tweetLength++; // добавляем длину пробела
 			}
+			// Отбросим лишний последний пробел
+			$tweetLength--;
+			// Добавим длину ссылки на картинку если она есть
 			if (isset($image)) $tweetLength += $twitterPicLength;
-			$diffLength = $tweetLength - mb_strlen($status);
-			if ($diffLength < 0) $diffLength = 0;
 			// Если твит получается слишком длинным или есть продолжение то усекаем его
 			if (count($wall[$i]->attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
-				$totalchars = 140 - 23 - 4 - $diffLength; // Отнимаем от максимальной длины твита сокращенные urls, "... " и т.п.
-				if (mb_strlen($status) > $totalchars) {
-					$status = mb_substr($status, 0, $totalchars); //…
-				};
-				$status = $status . "... https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id;
+				$status = $status_truncated . "... https://vk.com/wall".$wall[$i]->from_id."_".$wall[$i]->id;
 			}
 			$logtext = $logtext . "<tr><td>Lenght: ".mb_strlen($status)."<br>  <i>".$status."</i><br />";
 			// Постим в Твиттер если не localhost
@@ -196,8 +192,7 @@ while ($row = $source_list->fetch_assoc()) {
 						array(
 							'status'   => $status
 						),
-						true, // use auth
-						true  // multipart
+						true // use auth
 					); 
 				} else { $response = 200; }
 			}

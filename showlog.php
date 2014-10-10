@@ -49,18 +49,6 @@ if(!isset($_REQUEST['id'])){
 <div class="container">
 
 <?
-mb_internal_encoding("UTF-8");
-
-$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
-if ($mysqli->connect_error) {
-    die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
-}
-
-/* изменение набора символов на utf8 */
-if (!$mysqli->set_charset("utf8")) {
-    echo '<div class="alert alert-danger" role="alert">Ошибка при загрузке набора символов UTF8: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>';
-}
-
 // Получение списка пабликов
 if ($source_info = $mysqli->query("SELECT id, name, description FROM source")) {
     while($row = $source_info->fetch_assoc()) {
