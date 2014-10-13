@@ -156,7 +156,7 @@ while ($row = $source_list->fetch_assoc()) {
 					$tweetLength += mb_strlen($word);
 				}
 				// Заодно подготавливаем короткую версию твита
-				if ($tweetLength <= $totalchars) {
+				if ($tweetLength < $totalchars) {
 					$status_truncated .= $word . ' ';
 				}
 				$tweetLength++; // добавляем длину пробела
