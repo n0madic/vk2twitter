@@ -108,6 +108,7 @@ while ($row = $source_list->fetch_assoc()) {
 		'user_token' => $drow['oauth_token'],
 		'user_secret' => $drow['oauth_token_secret'],
 	));
+	$tmhOAuth->config['curl_timeout'] = 30;
 
 	$wall = file_get_contents("http://api.vk.com/method/wall.get?domain=".$row['name']);
 	$wall = json_decode($wall); // Преобразуем JSON-строку в массив
@@ -128,6 +129,9 @@ while ($row = $source_list->fetch_assoc()) {
 			};
 			if ($attach_type == 'photo') {
 				$image = $wall[$i]->attachment->photo->src_big;
+			};
+			if ($attach_type == 'doc' && $wall[$i]->attachment->doc->ext == 'gif') {
+				$image = $wall[$i]->attachment->doc->url;
 			};
 			if ($wall[$i]->post_type == 'copy') {
 				$status = $wall[$i]->copy_text.' '.$wall[$i]->text;
