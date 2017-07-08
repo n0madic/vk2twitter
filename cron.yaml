@@ -1,0 +1,4 @@
+cron:
+- description: "feed update"
+  url: /update_post.php
+  schedule: every 15 minutes

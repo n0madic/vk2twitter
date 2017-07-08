@@ -1,122 +1,119 @@
-<?
+<?php
 require_once('config.php');
 session_start();
-if(!isset($_SESSION['u_login'])){
-	header( "refresh:3; url=admin.php" ); 
-	die("Access denied!");
+if (!isset($_SESSION['u_login'])) {
+    header("refresh:3; url=admin.php");
+    die("Access denied!");
 }
-if(!isset($_REQUEST['id'])){
-	header( "refresh:3; url=admin.php" ); 
-	die("ERROR: Need source id!");
+if (!isset($_REQUEST['id'])) {
+    header("refresh:3; url=admin.php");
+    die("ERROR: Need source id!");
 } else {
-	$source_id = $_REQUEST['id'];
+    $source_id = $_REQUEST['id'];
 }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-<title>VK2Twitter Журнал обновлений паблика</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <title>VK2Twitter Журнал обновлений паблика</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap-theme.min.css">
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/latest/js/bootstrap.min.js"></script>
 </head>
 <body>
 <nav class="navbar navbar-default" role="navigation">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="admin.php">VK2Twitter панель администрирования</a>
-    </div>
-      <ul class="nav navbar-nav navbar-right">
-		<a href="admin.php?clearlog=<? echo $source_id;?>"><button type="button" class="btn btn-danger navbar-btn"><span class="glyphicon glyphicon-remove"></span> Очистить весь журнал</button></a>
-	  <? if (!isset($_REQUEST['notnull'])) { ?>
-		<a href="?id=<? echo $source_id . '&notnull';?>"><button type="button" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-filter"></span> Убрать нулевые результаты</button></a>
-	  <? } else { ?>
-		<a href="?id=<? echo $source_id;?>"><button type="button" class="btn btn-default navbar-btn"><span class="glyphicon glyphicon-filter"></span> Показать все результаты</button></a>
-	  <? } ?>
-      </ul>
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="admin.php">VK2Twitter панель администрирования</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            <a href="admin.php?clearlog=<?php echo $source_id; ?>">
+                <button type="button" class="btn btn-danger navbar-btn"><span class="glyphicon glyphicon-remove"></span>
+                    Очистить весь журнал
+                </button>
+            </a>
+            <?php if (!isset($_REQUEST['notnull'])) { ?>
+                <a href="?id=<?php echo $source_id . '&notnull'; ?>">
+                    <button type="button" class="btn btn-default navbar-btn"><span
+                                class="glyphicon glyphicon-filter"></span> Убрать нулевые результаты
+                    </button>
+                </a>
+            <?php } else { ?>
+                <a href="?id=<?php echo $source_id; ?>">
+                    <button type="button" class="btn btn-default navbar-btn"><span
+                                class="glyphicon glyphicon-filter"></span> Показать все результаты
+                    </button>
+                </a>
+            <?php } ?>
+        </ul>
 
-  </div><!-- /.container-fluid -->
+    </div><!-- /.container-fluid -->
 </nav>
 <div class="container">
 
-<?
-// Получение списка пабликов
-if ($source_info = $mysqli->query("SELECT id, name, description FROM source")) {
-    while($row = $source_info->fetch_assoc()) {
-        $sinfo[$row['id']] = array('name'=>$row['name'], 'description'=>$row['description']);
+    <?php
+    if ($source_id == '0') {
+        // Если надо показать общий лог то перебираем все паблики
+        $logs = [];
+        foreach ($config->twitters as $twitter_name => $twitter) {
+            foreach ($twitter->sources as $source_name => $source) {
+                $json = $memcache->get("log." . $source_name);
+                if ($json != false) {
+                    // Сливаем все логи в один массив
+                    $logs = array_merge($logs, json_decode($json, JSON_OBJECT_AS_ARRAY));
+                }
+            }
+        }
+        arsort($logs);
+    } else {
+        // Или загружаем только лог указанного паблика
+        $logs = $memcache->get("log." . $source_id);
+        $logs = $logs ? json_decode($logs, JSON_OBJECT_AS_ARRAY) : [];
     }
-    $source_info->close();
-} else {
-    echo '<div class="alert alert-danger" role="alert">Не удалось получить список пабликов: '.$mysqli->error.'</div>';
-}
+    echo '<table class="table">';
+    echo '<thead><tr><th>Дата и время проверки</th><th>Название паблика</th><th>Кол-во нового</th><th>Подробности</th></tr></thead><tbody>';
 
-if (isset($_REQUEST['notnull'])) {
-	$notnull = "AND counter>0";
-} else {
-	$notnull = "";
-}
-if ($source_id == 0) {
-	$equal = ">";
-} else {
-	$equal = "=";
-}
-
-if (!($sel_log = $mysqli->prepare('SELECT * FROM updatelog WHERE source_id' . $equal . '? ' . $notnull . ' ORDER BY datetime DESC'))) {
-    die('<div class="alert alert-dismissible alert-danger" role="alert">Не удалось подготовить запрос: (' . $mysqli->errno . ') ' . $mysqli->error);
-}
-if (!$sel_log->bind_param("i", $source_id)) {
-    die('<div class="alert alert-dismissible alert-danger" role="alert">Не удалось привязать параметры: (' . $sel_log->errno . ') ' . $sel_log->error);
-}
-if (!$sel_log->execute()) {
-	die('<div class="alert alert-dismissible alert-danger" role="alert">Не удалось получить журнал обновлений: (' . $mysqli->errno . ') ' . $mysqli->error.'</div>');
-}
-
-$result = $sel_log->get_result();
-
-echo '<table class="table">';
-echo '<thead><tr><th>Дата и время проверки</th><th>Название паблика</th><th>Кол-во нового</th><th>Подробности</th></tr></thead><tbody>';
-
-while ($srow = $result->fetch_assoc()) {
-	$uid = uniqid() . mt_rand();
-	echo '<tr><td width="170"><strong>'.$srow['datetime'].'</strong></td><td width="300">';
-    echo ' '.$sinfo[$srow['source_id']]['name'].' ('.$sinfo[$srow['source_id']]['description'].')';
-	echo '</td><td width="20"><center><span class="badge">' . $srow['counter'] . '</span></center></td>';
-    echo '<td>';
-	if ($srow['counter'] > 0) {
-		echo '<button type="button" class="btn ';
-		if (strpos($srow['text'], 'alert-danger') !== false) {
-			echo 'btn-warning';
-		} else {
-			echo 'btn-info';
-		}
-		echo' btn-xs" data-toggle="collapse" data-target="#' . $uid . '">Подробности обновления</button>';
-		echo '<div id="' . $uid . '" class="collapse">';
-	    echo '<table class="table table-striped table-condensed">';
-		echo $srow['text'];
-		echo '</table>';
-		echo '</div>'; 
-	} else {
-		echo '<span class="label label-default">Обновлений нет</span>';
-	}
-    echo '</td></tr>';
-}
-
-echo '</tbody></table>';
-
-$sel_log->close();
-$mysqli->close();
-
-?>
-
+    foreach ($logs as $row) {
+        if (isset($_REQUEST['notnull']) && $row["counter"] == 0) {
+            continue;
+        }
+        // Генерируем уникальные id для раскрываемых блоков с подробностями
+        $uid = uniqid() . mt_rand();
+        echo '<tr><td width="200"><strong>' . date('Y-m-d H:i:s', $row["timestamp"]) . '</strong></td><td width="150">';
+        echo ' ' . $row["public"] . ' ';
+        echo '</td><td width="20"><center><span class="badge">' . $row["counter"] . '</span></center></td>';
+        echo '<td>';
+        if ($row["counter"] > 0) {
+            echo '<button type="button" class="btn ';
+            // Помечаем строку лога с ошибками
+            if (strpos($row["message"], 'alert-danger') !== false) {
+                echo 'btn-warning';
+            } else {
+                echo 'btn-info';
+            }
+            echo ' btn-xs" data-toggle="collapse" data-target="#' . $uid . '">Подробности обновления</button>';
+            echo '<div id="' . $uid . '" class="collapse">';
+            echo '<table class="table table-striped table-condensed">';
+            echo $row["message"];
+            echo '</table>';
+            echo '</div>';
+        } else {
+            echo '<span class="label label-default">Обновлений нет</span>';
+        }
+        echo '</td></tr>';
+    }
+    echo '</tbody></table>';
+    ?>
 </div>
 
 </body>

@@ -1,0 +1,17 @@
+runtime: php55
+api_version: 1
+
+handlers:
+- url: /favicon.ico
+  static_files: favicon.ico
+  upload: favicon.ico
+- url: /
+  script: index.php
+- url: /admin(\.php)?
+  script: admin.php
+- url: /showlog(\.php)?
+  script: showlog.php
+- url: /get_access_token(\.php)?
+  script: get_access_token.php
+- url: /update_post(\.php)?
+  script: update_post.php

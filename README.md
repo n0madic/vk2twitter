@@ -1,4 +1,6 @@
 vk2twitter
 ==========
 
-Service translate Vkontakte public post to Twitter status
+Сервис транслирующий публичные посты Vkontakte в Twitter статусы
+
+[Online demo](http://vk2twitter.nomadic.name/)

@@ -1,35 +1,51 @@
 <?php
-
-/**
- * @file
- * A single location to store configuration.
- */
-
-//////////////////////////////// CONFIG ////////////////////////////////
-
-define('ADMIN_PASS', 'f379eaf3c831b04de153469d1bec345e'); // md5() hash 
-
-define('CONSUMER_KEY', 'yT8nB64wK8MKDxPjXwBBZnZlW');
-define('CONSUMER_SECRET', 'EasEmBzeqKYcNBroOaZi6QB7btLTFOvlfaRkjwA3gS9NWOPSZU');
-
-define('DB_SERVER', 'localhost');
-define('DB_NAME', 'vk2twitter');
-define('DB_USER', 'vk2twitter');
-define('DB_PASSWORD', 'vk2twitter');
-
-////////////////////////////// END CONFIG //////////////////////////////
-
+// Список файлов конфигурации по приоритету
+$config_files = ["gs://vk2twitter.appspot.com/config.json", "config.json"];
+error_reporting(E_ERROR);
 mb_internal_encoding("UTF-8");
+$memcache = new Memcache;
 
-// Подключаемся к БД
-$mysqli = new mysqli(DB_SERVER, DB_USER, DB_PASSWORD, DB_NAME);
-if ($mysqli->connect_error) {
-    die('Connect Error (' . $mysqli->connect_errno . ') ' . $mysqli->connect_error);
+function load_config()
+{
+    global $memcache, $config_files;
+    // Пробуем загрузить конфигурацию из кеша
+    $json = $memcache->get("config");
+    if (empty($json)) {
+        // Если не удалось, то пробуем загрузить конфиг из указанных файлов
+        foreach ($config_files as $file) {
+            $json = file_get_contents($file);
+            if ($json != false) {
+                break;
+            }
+        }
+        // Если ничего не получилось то загружаем пустой конфиг
+        if ($json == false) {
+            echo('<div class="alert alert-danger" role="alert"><strong>Ошибка чтения конфигурации!</strong> Будет использована пустая конфигурация.</div>');
+            $json = '{"twitters": {}, "common": {"admin_pass": "", "tw_consumer_secret": "", "tw_consumer_key": "", "vk_access_token": ""}}';
+        }
+        // Если все ОК то сохраняем конфиг в кеше
+        $memcache->set("config", $json);
+    }
+    return json_decode($json);
 }
 
-/* изменение набора символов на utf8 */
-if (!$mysqli->set_charset("utf8")) {
-    die('ERROR: Ошибка при загрузке набора символов UTF8: (' . $mysqli->errno . ') ' . $mysqli->error);
+$config = load_config();
+
+function save_config($ok_msg)
+{
+    global $config_files, $config, $memcache;
+    $json = json_encode($config, JSON_UNESCAPED_UNICODE + JSON_PRETTY_PRINT);
+    // Сохраняем конфигурацию в одном из указанных файлов
+    foreach ($config_files as $file) {
+        if (file_put_contents($file, $json) != false) {
+            echo '<div class="alert alert-success" role="alert">' . $ok_msg . '</div>';
+            // В случаи удачи кешируем конфигурацию
+            $memcache->set("config", $json);
+            break;
+        } else {
+            die('<div class="alert alert-danger" role="alert">Не удалось сохранить изменения!</div>');
+        }
+    }
 }
 
 ?>
