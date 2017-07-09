@@ -133,7 +133,7 @@
                                     If (isset($image)) {
                                         $logtext = $logtext . "<img src=" . $image . "><br />";
                                         if (strpos($_SERVER['HTTP_HOST'], 'localhost') == false) {
-                                            $image = file_get_contents($image);
+                                            $image = file_get_contents($image, NULL, NULL, 0, 204800);
                                             $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update_with_media.json',
                                                 array(
                                                     'media[]' => $image,
