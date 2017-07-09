@@ -159,13 +159,11 @@
                                         }
                                     }
                                     if ($response <> 200) {
-                                        http_response_code(500);
                                         $error = json_decode($tmhOAuth->response['response']);
                                         $logtext = $logtext . '<div class="alert alert-danger" role="alert">Ошибка размещения статуса в Twitter: ' . $error->errors[0]->message . '</div>';
-                                    } else {
-                                        $updated = true;
                                     };
                                     $logtext = $logtext . '</td></tr>';
+                                    $updated = true;
                                 }
                             }
                         } else {
