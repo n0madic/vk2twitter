@@ -73,7 +73,7 @@
                             $wall = json_decode($wall); // Преобразуем JSON-строку в массив
                             $wall = $wall->response; // Получаем массив постов
                             for ($i = count($wall); $i > 0; $i--) {
-                                if ($wall[$i]->date > $source->last_update) {
+                                if ($wall[$i]->date > $source->last_update && $wall[$i]->marked_as_ads == 0) {
                                     $counter++;
                                     $status = trim($wall[$i]->text);
                                     // Запоминаем дату последней новости
