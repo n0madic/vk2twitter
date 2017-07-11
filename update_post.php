@@ -96,13 +96,11 @@
                                     $status = preg_replace("/\[(club|id)\d+\|(.+)]/U", "$2", $status); // Удаляем метатеги
                                     $status = preg_replace('/\s+/', ' ', $status); // Удаляем повторяющиеся пробелы
                                     // Определение более точной длины будущего твита
-                                    $tcoLengthHttp = 22;
-                                    $tcoLengthHttps = 23;
-                                    $twitterPicLength = 23;
+                                    $short_url_length = 23;
                                     $url_regex = "/(?:((?:[^-\/" . '"' . "':!=a-z0-9_@＠]|^|\:))(((?:https?:\/\/|www\.)?)((?:[^\p{P}\p{Lo}\s][\.-](?=[^\p{P}\p{Lo}\s])|[^\p{P}\p{Lo}\s])+\.[a-z]{2,}(?::[0-9]+)?)(\/(?:(?:\([a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\))|@[a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\/|[\.\,]?(?:[a-z0-9!\*';:=\+\$\/%#\[\]\-_~]|,(?!\s)))*[a-z0-9=#\/]?)?(\?[a-z0-9!\*'\(\);:&=\+\$\/%#\[\]\-_\.,~]*[a-z0-9_&=#\/])?))/iux";
                                     // Определяем максимальную длину обычного текста
-                                    $totalchars = 140 - $tcoLengthHttps - 2; // Отнимаем от максимально возможной длины твита длину сокращенного url и "… "
-                                    if (isset($image)) $totalchars -= $twitterPicLength; // Отнимаем длину ссылки на картинку если она есть
+                                    $totalchars = 140 - $short_url_length - 2; // Отнимаем от максимально возможной длины твита длину сокращенного url и "… "
+                                    if (isset($image)) $totalchars -= $short_url_length; // Отнимаем длину ссылки на картинку если она есть
                                     // Прикидываем реальный размер твита, попутно его обрезая до максимально возможного
                                     $words = preg_split('/\s+/', $status);
                                     $status_truncated = '';
@@ -110,7 +108,7 @@
                                     foreach ($words as $word) {
                                         // Если слово ссылка то добавляем длину короткой ссылки, иначе длину слова
                                         if (preg_match($url_regex, $word)) {
-                                            $tweetLength += mb_stristr($word, 'https') !== FALSE ? $tcoLengthHttps : $tcoLengthHttp;
+                                            $tweetLength += $short_url_length;
                                         } else {
                                             $tweetLength += mb_strlen($word);
                                         }
@@ -123,7 +121,7 @@
                                     // Отбросим лишний последний пробел
                                     $tweetLength--;
                                     // Добавим длину ссылки на картинку если она есть
-                                    if (isset($image)) $tweetLength += $twitterPicLength;
+                                    if (isset($image)) $tweetLength += $short_url_length;
                                     // Если твит получается слишком длинным или есть продолжение то усекаем его
                                     if (count($wall[$i]->attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
                                         $status = $status_truncated . "… https://vk.com/wall" . $wall[$i]->from_id . "_" . $wall[$i]->id;
