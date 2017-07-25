@@ -31,33 +31,6 @@ session_start();
     </script>
 </head>
 <body>
-<nav class="navbar navbar-default" role="navigation">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="admin.php">VK2Twitter панель администрирования</a>
-        </div>
-        <ul class="nav navbar-nav navbar-right">
-            <button class="btn btn-default navbar-btn" data-toggle="modal" data-target="#SettingsModal"><span
-                        class="glyphicon glyphicon-wrench"></span> Настройки
-            </button>
-            <a href="update_post.php">
-                <button type="button" class="btn btn-default navbar-btn"><span
-                            class="glyphicon glyphicon-refresh"></span> Обновить все посты
-                </button>
-            </a>
-            <a class="btn btn-success" href="showlog.php?id=0&notnull"><span class="glyphicon glyphicon-list"></span>
-                Общий журнал обновлений</a>
-        </ul>
-    </div><!-- /.container-fluid -->
-</nav>
 <div class="container">
     <?php
     require_once('config.php');
@@ -88,7 +61,36 @@ session_start();
 <?php
 exit;
 }
+?>
+<nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="admin.php">VK2Twitter панель администрирования</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            <button class="btn btn-default navbar-btn" data-toggle="modal" data-target="#SettingsModal"><span
+                        class="glyphicon glyphicon-wrench"></span> Настройки
+            </button>
+            <a href="update_post.php">
+                <button type="button" class="btn btn-default navbar-btn"><span
+                            class="glyphicon glyphicon-refresh"></span> Обновить все посты
+                </button>
+            </a>
+            <a class="btn btn-success" href="showlog.php?id=0&notnull"><span class="glyphicon glyphicon-list"></span>
+                Общий журнал обновлений</a>
+        </ul>
+    </div><!-- /.container-fluid -->
+</nav>
 
+<?php
 // Сохранение настроек
 if (isset($_POST['vk_access_key'])) {
     if ($_POST['password'] !== '**********') {
@@ -99,7 +101,6 @@ if (isset($_POST['vk_access_key'])) {
     $config->common->tw_consumer_secret = $_POST['tw_consumer_secret'];
     save_config("Настройки удачно сохранены");
 }
-
 ?>
 
 <!-- Add Twitter account -->
