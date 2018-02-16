@@ -4,8 +4,8 @@
     <title>VK2Twitter Панель администрирования</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <!-- <meta http-equiv="refresh" content="300"> -->
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
 </head>
 <body>
 <nav class="navbar navbar-default navbar-static-top" role="navigation">
