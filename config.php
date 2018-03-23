@@ -1,13 +1,14 @@
 <?php
 // Список файлов конфигурации по приоритету
 $config_files = ["gs://vk2twitter.appspot.com/config.json", "config.json"];
+$default_config = '{"twitters": {}, "common": {"admin_pass": "", "tw_consumer_secret": "", "tw_consumer_key": "", "vk_access_token": ""}}';
 error_reporting(E_ERROR);
 mb_internal_encoding("UTF-8");
 $memcache = new Memcache;
 
 function load_config()
 {
-    global $memcache, $config_files;
+    global $memcache, $config_files, $default_config;
     // Пробуем загрузить конфигурацию из кеша
     $json = $memcache->get("config");
     if (empty($json)) {
@@ -21,7 +22,7 @@ function load_config()
         // Если ничего не получилось то загружаем пустой конфиг
         if ($json == false) {
             echo('<div class="alert alert-danger" role="alert"><strong>Ошибка чтения конфигурации!</strong> Будет использована пустая конфигурация.</div>');
-            $json = '{"twitters": {}, "common": {"admin_pass": "", "tw_consumer_secret": "", "tw_consumer_key": "", "vk_access_token": ""}}';
+            $json = $default_config;
         }
         // Если все ОК то сохраняем конфиг в кеше
         $memcache->set("config", $json);
