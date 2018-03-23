@@ -130,7 +130,7 @@
                                     // Постим в Твиттер если не localhost
                                     If (isset($image)) {
                                         $logtext = $logtext . "<img src=" . $image . "><br />";
-                                        if (strpos($_SERVER['HTTP_HOST'], 'localhost') == false) {
+                                        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
                                             $image = file_get_contents($image, NULL, NULL, 0, 204800);
                                             $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update_with_media.json',
                                                 array(
@@ -145,7 +145,7 @@
                                         }
                                         unset($image);
                                     } else {
-                                        if (strpos($_SERVER['HTTP_HOST'], 'localhost') == false) {
+                                        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
                                             $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update.json',
                                                 array(
                                                     'status' => $status
