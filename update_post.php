@@ -71,108 +71,113 @@
                         $wall = file_get_contents("https://api.vk.com/method/wall.get?v=5&photo_sizes=1&domain=" . $source_name . "&access_token=" . $config->common->vk_access_token);
                         if ($wall != false) {
                             $wall = json_decode($wall); // Преобразуем JSON-строку в массив
-                            $wall = $wall->response->items; // Получаем массив постов
-                            for ($i = count($wall); $i > 0; $i--) {
-                                if ($wall[$i]->date > $source->last_update && $wall[$i]->marked_as_ads == 0) {
-                                    $counter++;
-                                    $status = trim($wall[$i]->text);
-                                    // Запоминаем дату последней новости
-                                    $config->twitters->$twitter_name->sources->$source_name->last_update = $wall[$i]->date;
-                                    if (isset($wall[$i]->copy_history[0])) {
-                                        $status = $wall[$i]->copy_history[0]->text . ' ' . $wall[$i]->text;
-                                        $attachments = $wall[$i]->copy_history[0]->attachments;
-                                    } else {
-                                        $attachments = $wall[$i]->attachments;
-                                    };
-                                    $attach_type = $attachments[0]->type;
-                                    if ($attach_type == 'video') {
-                                        $status = $wall[$i]->description;
-                                        $image = $attachments[0]->video->photo_320;
-                                    };
-                                    if ($attach_type == 'photo') {
-                                        // Проходимся по списку изображений выбирая ссылку с максимальным разрешением
-                                        $max_resolution = 0;
-                                        unset($image);
-                                        foreach ($attachments[0]->photo->sizes as $size) {
-                                            if ($size->width > $max_resolution) {
-                                                $max_resolution = $size->width;
-                                                $image = $size->src;
+                            if (isset($wall->error)) {
+                                $logtext = '<div class="alert alert-danger" role="alert"><span style="font-size: 1.5em;" class="glyphicon glyphicon-warning-sign"></span> Ошибка API! code: '.$wall->error->error_code. '<br>'
+                                 . $wall->error->error_msg . '</div>';
+                            } else {
+                                $wall = $wall->response->items; // Получаем массив постов
+                                for ($i = count($wall); $i > 0; $i--) {
+                                    if ($wall[$i]->date > $source->last_update && $wall[$i]->marked_as_ads == 0) {
+                                        $counter++;
+                                        $status = trim($wall[$i]->text);
+                                        // Запоминаем дату последней новости
+                                        $config->twitters->$twitter_name->sources->$source_name->last_update = $wall[$i]->date;
+                                        if (isset($wall[$i]->copy_history[0])) {
+                                            $status = $wall[$i]->copy_history[0]->text . ' ' . $wall[$i]->text;
+                                            $attachments = $wall[$i]->copy_history[0]->attachments;
+                                        } else {
+                                            $attachments = $wall[$i]->attachments;
+                                        };
+                                        $attach_type = $attachments[0]->type;
+                                        if ($attach_type == 'video') {
+                                            $status = $wall[$i]->description;
+                                            $image = $attachments[0]->video->photo_320;
+                                        };
+                                        if ($attach_type == 'photo') {
+                                            // Проходимся по списку изображений выбирая ссылку с максимальным разрешением
+                                            $max_resolution = 0;
+                                            unset($image);
+                                            foreach ($attachments[0]->photo->sizes as $size) {
+                                                if ($size->width > $max_resolution) {
+                                                    $max_resolution = $size->width;
+                                                    $image = $size->src;
+                                                }
+                                            }
+                                        };
+                                        if ($attach_type == 'doc' && $attachments[0]->doc->ext == 'gif') {
+                                            $image = $attachments[0]->doc->url;
+                                        };
+                                        $status = strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $status)); // Заменяем переводы строк
+                                        $status = preg_replace("/\[(club|id)\d+\|(.+)]/U", "$2", $status); // Удаляем метатеги
+                                        $status = preg_replace('/\s+/', ' ', $status); // Удаляем повторяющиеся пробелы
+                                        // Определение более точной длины будущего твита
+                                        $short_url_length = 23;
+                                        $url_regex = "/(?:((?:[^-\/" . '"' . "':!=a-z0-9_@＠]|^|\:))(((?:https?:\/\/|www\.)?)((?:[^\p{P}\p{Lo}\s][\.-](?=[^\p{P}\p{Lo}\s])|[^\p{P}\p{Lo}\s])+\.[a-z]{2,}(?::[0-9]+)?)(\/(?:(?:\([a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\))|@[a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\/|[\.\,]?(?:[a-z0-9!\*';:=\+\$\/%#\[\]\-_~]|,(?!\s)))*[a-z0-9=#\/]?)?(\?[a-z0-9!\*'\(\);:&=\+\$\/%#\[\]\-_\.,~]*[a-z0-9_&=#\/])?))/iux";
+                                        // Определяем максимальную длину обычного текста
+                                        $totalchars = 140 - $short_url_length - 2; // Отнимаем от максимально возможной длины твита длину сокращенного url и "… "
+                                        if (isset($image)) $totalchars -= $short_url_length; // Отнимаем длину ссылки на картинку если она есть
+                                        // Прикидываем реальный размер твита, попутно его обрезая до максимально возможного
+                                        $words = preg_split('/\s+/', $status);
+                                        $status_truncated = '';
+                                        $tweetLength = 0;
+                                        foreach ($words as $word) {
+                                            // Если слово ссылка то добавляем длину короткой ссылки, иначе длину слова
+                                            if (preg_match($url_regex, $word)) {
+                                                $tweetLength += $short_url_length;
+                                            } else {
+                                                $tweetLength += mb_strlen($word);
+                                            }
+                                            // Заодно подготавливаем короткую версию твита
+                                            if ($tweetLength < $totalchars) {
+                                                $status_truncated .= $word . ' ';
+                                            }
+                                            $tweetLength++; // добавляем длину пробела
+                                        }
+                                        // Отбросим лишний последний пробел
+                                        $tweetLength--;
+                                        // Добавим длину ссылки на картинку если она есть
+                                        if (isset($image)) $tweetLength += $short_url_length;
+                                        // Если твит получается слишком длинным или есть продолжение то усекаем его
+                                        if (count($attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
+                                            $status = $status_truncated . "… https://vk.com/wall" . $wall[$i]->from_id . "_" . $wall[$i]->id;
+                                        }
+                                        $logtext = $logtext . "<tr><td>Lenght: " . mb_strlen($status) . "<br>  <i>" . $status . "</i><br />";
+                                        // Постим в Твиттер если не localhost
+                                        If (isset($image)) {
+                                            $logtext = $logtext . "<img src=" . $image . "><br />";
+                                            if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+                                                $image = file_get_contents($image, NULL, NULL, 0, 204800);
+                                                $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update_with_media.json',
+                                                    array(
+                                                        'media[]' => $image,
+                                                        'status' => $status
+                                                    ),
+                                                    true, // use auth
+                                                    true  // multipart
+                                                );
+                                            } else {
+                                                $response = 200;
+                                            }
+                                            unset($image);
+                                        } else {
+                                            if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
+                                                $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update.json',
+                                                    array(
+                                                        'status' => $status
+                                                    ),
+                                                    true // use auth
+                                                );
+                                            } else {
+                                                $response = 200;
                                             }
                                         }
-                                    };
-                                    if ($attach_type == 'doc' && $attachments[0]->doc->ext == 'gif') {
-                                        $image = $attachments[0]->doc->url;
-                                    };
-                                    $status = strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $status)); // Заменяем переводы строк
-                                    $status = preg_replace("/\[(club|id)\d+\|(.+)]/U", "$2", $status); // Удаляем метатеги
-                                    $status = preg_replace('/\s+/', ' ', $status); // Удаляем повторяющиеся пробелы
-                                    // Определение более точной длины будущего твита
-                                    $short_url_length = 23;
-                                    $url_regex = "/(?:((?:[^-\/" . '"' . "':!=a-z0-9_@＠]|^|\:))(((?:https?:\/\/|www\.)?)((?:[^\p{P}\p{Lo}\s][\.-](?=[^\p{P}\p{Lo}\s])|[^\p{P}\p{Lo}\s])+\.[a-z]{2,}(?::[0-9]+)?)(\/(?:(?:\([a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\))|@[a-z0-9!\*';:=\+\$\/%#\[\]\-_,~]+\/|[\.\,]?(?:[a-z0-9!\*';:=\+\$\/%#\[\]\-_~]|,(?!\s)))*[a-z0-9=#\/]?)?(\?[a-z0-9!\*'\(\);:&=\+\$\/%#\[\]\-_\.,~]*[a-z0-9_&=#\/])?))/iux";
-                                    // Определяем максимальную длину обычного текста
-                                    $totalchars = 140 - $short_url_length - 2; // Отнимаем от максимально возможной длины твита длину сокращенного url и "… "
-                                    if (isset($image)) $totalchars -= $short_url_length; // Отнимаем длину ссылки на картинку если она есть
-                                    // Прикидываем реальный размер твита, попутно его обрезая до максимально возможного
-                                    $words = preg_split('/\s+/', $status);
-                                    $status_truncated = '';
-                                    $tweetLength = 0;
-                                    foreach ($words as $word) {
-                                        // Если слово ссылка то добавляем длину короткой ссылки, иначе длину слова
-                                        if (preg_match($url_regex, $word)) {
-                                            $tweetLength += $short_url_length;
-                                        } else {
-                                            $tweetLength += mb_strlen($word);
-                                        }
-                                        // Заодно подготавливаем короткую версию твита
-                                        if ($tweetLength < $totalchars) {
-                                            $status_truncated .= $word . ' ';
-                                        }
-                                        $tweetLength++; // добавляем длину пробела
+                                        if ($response <> 200) {
+                                            $error = json_decode($tmhOAuth->response['response']);
+                                            $logtext = $logtext . '<div class="alert alert-danger" role="alert">Ошибка размещения статуса в Twitter: ' . $error->errors[0]->message . '</div>';
+                                        };
+                                        $logtext = $logtext . '</td></tr>';
+                                        $updated = true;
                                     }
-                                    // Отбросим лишний последний пробел
-                                    $tweetLength--;
-                                    // Добавим длину ссылки на картинку если она есть
-                                    if (isset($image)) $tweetLength += $short_url_length;
-                                    // Если твит получается слишком длинным или есть продолжение то усекаем его
-                                    if (count($attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
-                                        $status = $status_truncated . "… https://vk.com/wall" . $wall[$i]->from_id . "_" . $wall[$i]->id;
-                                    }
-                                    $logtext = $logtext . "<tr><td>Lenght: " . mb_strlen($status) . "<br>  <i>" . $status . "</i><br />";
-                                    // Постим в Твиттер если не localhost
-                                    If (isset($image)) {
-                                        $logtext = $logtext . "<img src=" . $image . "><br />";
-                                        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-                                            $image = file_get_contents($image, NULL, NULL, 0, 204800);
-                                            $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update_with_media.json',
-                                                array(
-                                                    'media[]' => $image,
-                                                    'status' => $status
-                                                ),
-                                                true, // use auth
-                                                true  // multipart
-                                            );
-                                        } else {
-                                            $response = 200;
-                                        }
-                                        unset($image);
-                                    } else {
-                                        if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-                                            $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update.json',
-                                                array(
-                                                    'status' => $status
-                                                ),
-                                                true // use auth
-                                            );
-                                        } else {
-                                            $response = 200;
-                                        }
-                                    }
-                                    if ($response <> 200) {
-                                        $error = json_decode($tmhOAuth->response['response']);
-                                        $logtext = $logtext . '<div class="alert alert-danger" role="alert">Ошибка размещения статуса в Twitter: ' . $error->errors[0]->message . '</div>';
-                                    };
-                                    $logtext = $logtext . '</td></tr>';
-                                    $updated = true;
                                 }
                             }
                         } else {
