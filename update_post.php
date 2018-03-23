@@ -68,29 +68,40 @@
                     <table class="table table-striped table-bordered">
                         <?php
 
-                        $wall = file_get_contents("https://api.vk.com/method/wall.get?v=3&domain=" . $source_name . "&access_token=" . $config->common->vk_access_token);
+                        $wall = file_get_contents("https://api.vk.com/method/wall.get?v=5&photo_sizes=1&domain=" . $source_name . "&access_token=" . $config->common->vk_access_token);
                         if ($wall != false) {
                             $wall = json_decode($wall); // Преобразуем JSON-строку в массив
-                            $wall = $wall->response; // Получаем массив постов
+                            $wall = $wall->response->items; // Получаем массив постов
                             for ($i = count($wall); $i > 0; $i--) {
                                 if ($wall[$i]->date > $source->last_update && $wall[$i]->marked_as_ads == 0) {
                                     $counter++;
                                     $status = trim($wall[$i]->text);
                                     // Запоминаем дату последней новости
                                     $config->twitters->$twitter_name->sources->$source_name->last_update = $wall[$i]->date;
-                                    $attach_type = $wall[$i]->attachment->type;
+                                    if (isset($wall[$i]->copy_history[0])) {
+                                        $status = $wall[$i]->copy_history[0]->text . ' ' . $wall[$i]->text;
+                                        $attachments = $wall[$i]->copy_history[0]->attachments;
+                                    } else {
+                                        $attachments = $wall[$i]->attachments;
+                                    };
+                                    $attach_type = $attachments[0]->type;
                                     if ($attach_type == 'video') {
-                                        $status = $wall[$i]->copy_text;
-                                        $image = $wall[$i]->attachment->video->image_big;
+                                        $status = $wall[$i]->description;
+                                        $image = $attachments[0]->video->photo_320;
                                     };
                                     if ($attach_type == 'photo') {
-                                        $image = $wall[$i]->attachment->photo->src_big;
+                                        // Проходимся по списку изображений выбирая ссылку с максимальным разрешением
+                                        $max_resolution = 0;
+                                        unset($image);
+                                        foreach ($attachments[0]->photo->sizes as $size) {
+                                            if ($size->width > $max_resolution) {
+                                                $max_resolution = $size->width;
+                                                $image = $size->src;
+                                            }
+                                        }
                                     };
-                                    if ($attach_type == 'doc' && $wall[$i]->attachment->doc->ext == 'gif') {
-                                        $image = $wall[$i]->attachment->doc->url;
-                                    };
-                                    if ($wall[$i]->post_type == 'copy') {
-                                        $status = $wall[$i]->copy_text . ' ' . $wall[$i]->text;
+                                    if ($attach_type == 'doc' && $attachments[0]->doc->ext == 'gif') {
+                                        $image = $attachments[0]->doc->url;
                                     };
                                     $status = strip_tags(preg_replace('/<br\s*\/?>/i', "\n", $status)); // Заменяем переводы строк
                                     $status = preg_replace("/\[(club|id)\d+\|(.+)]/U", "$2", $status); // Удаляем метатеги
@@ -123,7 +134,7 @@
                                     // Добавим длину ссылки на картинку если она есть
                                     if (isset($image)) $tweetLength += $short_url_length;
                                     // Если твит получается слишком длинным или есть продолжение то усекаем его
-                                    if (count($wall[$i]->attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
+                                    if (count($attachments) > 1 || $tweetLength > 140 || $attach_type == 'video' || $attach_type == 'poll') {
                                         $status = $status_truncated . "… https://vk.com/wall" . $wall[$i]->from_id . "_" . $wall[$i]->id;
                                     }
                                     $logtext = $logtext . "<tr><td>Lenght: " . mb_strlen($status) . "<br>  <i>" . $status . "</i><br />";
