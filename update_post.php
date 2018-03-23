@@ -68,7 +68,7 @@
                     <table class="table table-striped table-bordered">
                         <?php
 
-                        $wall = file_get_contents("https://api.vk.com/method/wall.get?domain=" . $source_name . "&access_token=" . $config->common->vk_access_token);
+                        $wall = file_get_contents("https://api.vk.com/method/wall.get?v=3&domain=" . $source_name . "&access_token=" . $config->common->vk_access_token);
                         if ($wall != false) {
                             $wall = json_decode($wall); // Преобразуем JSON-строку в массив
                             $wall = $wall->response; // Получаем массив постов
