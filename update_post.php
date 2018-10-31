@@ -146,7 +146,7 @@
                                         If (isset($image)) {
                                             $logtext = $logtext . "<img src=" . $image . "><br />";
                                             if (strpos($_SERVER['HTTP_HOST'], 'localhost') === false) {
-                                                $image = file_get_contents($image, NULL, NULL, 0, 204800);
+                                                $image = file_get_contents($image);
                                                 $response = $tmhOAuth->request('POST', 'https://api.twitter.com/1.1/statuses/update_with_media.json',
                                                     array(
                                                         'media[]' => $image,
@@ -173,7 +173,12 @@
                                         }
                                         if ($response <> 200) {
                                             $error = json_decode($tmhOAuth->response['response']);
-                                            $logtext = $logtext . '<div class="alert alert-danger" role="alert">Ошибка размещения статуса в Twitter: ' . $error->errors[0]->message . '</div>';
+                                            if (empty($error->errors[0]->message)) {
+                                                $error_msg = $tmhOAuth->response['error'];
+                                            } else {
+                                                $error_msg = $error->errors[0]->message;
+                                            }
+                                            $logtext = $logtext . '<div class="alert alert-danger" role="alert">Ошибка размещения статуса в Twitter: ' . $error_msg . '</div>';
                                         };
                                         $logtext = $logtext . '</td></tr>';
                                         $updated = true;
